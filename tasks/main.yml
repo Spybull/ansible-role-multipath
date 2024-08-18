@@ -14,8 +14,6 @@
     combined: "{{ multipath_config | combine(multipath_files.multipath | default({}), recursive=True) }}"
     dropin_files: "{{ multipath_files | default({}) | dict2items | selectattr('key', 'ne', 'multipath') | items2dict }}"
 
-- debug: var=combined
-
 - name: Generate {{ multipath_config_path }}.
   template:
     src: multipath.conf.j2
