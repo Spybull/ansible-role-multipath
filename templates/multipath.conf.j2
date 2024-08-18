@@ -1,0 +1,95 @@
+#jinja2: lstrip_blocks: True, trim_blocks: False
+# Managed by ansible
+{% if config.defaults is defined and config.defaults is mapping -%}
+defaults {
+  {%- for key, val in config.defaults.items() %}
+    {{ key }} {% if val is number %}{{ val }}{% else %}"{{ val }}"{% endif -%}
+  {% endfor %}
+}
+{% endif -%}
+
+{% if config.blacklist is defined and config.blacklist is mapping %}
+blacklist {
+{%- for key, val in config.blacklist.items() %}
+  {%- if val is sequence and val is not string %}
+    {%- for data in val %}
+      {%- if data is mapping %}
+  {{ key }} {
+  {%- for subk, subv in data.items() %}
+    {{ subk }} {% if subv is number %}{{ subv }}{% else %}"{{ subv }}"{% endif -%}
+  {%- endfor %}
+  }
+   {% else %}
+  {{ key }} "{{ data }}"
+    {%- endif %}
+ {%- endfor %}
+  {% endif -%}
+{% endfor -%}
+}
+{% endif -%}
+
+{% if config.blacklist_exceptions is defined and config.blacklist_exceptions is mapping %}
+blacklist_exceptions {
+{%- for key, val in config.blacklist_exceptions.items() %}
+  {%- if val is sequence and val is not string %}
+    {%- for data in val %}
+      {%- if data is mapping %}
+  {{ key }} {
+  {%- for subk, subv in data.items() %}
+    {{ subk }} {% if subv is number %}{{ subv }}{% else %}"{{ subv }}"{% endif -%}
+  {%- endfor %}
+  }
+   {% else %}
+  {{ key }} "{{ data }}"
+    {%- endif %}
+ {%- endfor %}
+  {% endif -%}
+{% endfor -%}
+}
+{% endif -%}
+
+{% if config.devices is defined and config.devices is sequence and config.devices is not string %}
+devices {
+{%- for device in config.devices %}
+  {%- for key, val in device.items() %}
+  {{ key }} {
+    {%- for subk, subv in val.items() %}
+      {{ subk }} {% if subv is number %}{{ subv }}{% else %}"{{ subv }}"{% endif -%}
+    {% endfor %}
+  {%- endfor %}
+  }
+{% endfor %}
+}
+{% endif -%}
+
+{% if config.multipaths is defined %}
+multipaths {
+{%- for section, data in config.multipaths.items() %}
+  {%- if data is sequence %}
+    {%- for multipath in data %}
+    {{ section }} {
+      {%- for key, val in multipath.items() %}
+        {{ key }} {% if val is number %}{{ val }}{% else %}"{{ val }}"{% endif -%}
+      {%- endfor %}
+    }
+    {%- endfor -%}
+  {% endif -%}
+{% endfor %}
+}
+{% endif %}
+
+{% if config.overrides is defined and config.overrides is mapping -%}
+overrides {
+{%- for key, val in config.overrides.items() %}
+  {%- if val is mapping %}
+  {{ key }} {
+    {%- for subk, subv in val.items() %}
+      {{ subk }} {% if subv is number %}{{ subv }}{% else %}"{{ subv }}"{% endif %}
+    {%- endfor %}
+  }
+  {% else %}
+  {{ key }} {% if val is number %}{{ val }}{% else %}"{{ val }}"{% endif -%}
+  {% endif %}
+{%- endfor -%}
+}
+{% endif -%}

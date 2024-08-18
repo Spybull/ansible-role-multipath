@@ -1,0 +1,40 @@
+---
+multipath_enablerepo: ""
+
+# The default multipath directory
+multipath_dir: "/etc/multipath"
+
+# /etc/multipath.conf - is the configuration file for the multipath daemon.
+# It is used to overwrite the built-in configuration table of multipathd.
+# Any line whose first non-white-space character is a '#' is considered a comment line.
+# Empty lines are ignored.
+multipath_config_path: "/etc/multipath.conf"
+
+# Additional configuration can be made in drop-in files under /etc/multipath/conf.d.
+# Files ending in .conf in this directory are read in alphabetical order,  after reading  /etc/multipath.conf.
+# They use the same syntax as /etc/multipath.conf itself, and support all sections and keywords.
+# If a keyword occurs in the same section in multiple files, the last occurrence will take precedence over all others.
+multipath_dropin_path: "/etc/multipath/conf.d"
+
+multipath_service: multipathd
+
+# default /etc/multipath.conf configuration
+multipath_config:
+  defaults:
+    config_dir: "{{ multipath_dropin_path }}"
+  multipaths:
+    multipath:
+
+# Set initial multipathd state. Recommended values: `started` or `stopped`
+multipath_state: started
+
+# Set initial multipathd service status. Recommended values: `true` or `false`
+multipath_enabled: true
+
+# Set multipathd state when configuration changes are made. Recommended values:
+# `reloaded` or `restarted`
+multipath_restart_state: reloaded
+
+# Multipath package state; use `present` to make sure it's installed, or `latest`
+# if you want to upgrade or switch versions using a new repo.
+multipath_packages_state: present

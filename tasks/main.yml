@@ -1,0 +1,52 @@
+---
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Define multipath_packages.
+  set_fact:
+    multipath_packages: "{{ __multipath_packages | list }}"
+  when: multipath_packages is not defined
+
+- include_tasks: "setup-{{ ansible_os_family }}.yml"
+
+- name: Combine defaults for multipath.conf and select dropins.
+  set_fact:
+    combined: "{{ multipath_config | combine(multipath_files.multipath | default({}), recursive=True) }}"
+    dropin_files: "{{ multipath_files | default({}) | dict2items | selectattr('key', 'ne', 'multipath') | items2dict }}"
+
+- debug: var=combined
+
+- name: Generate {{ multipath_config_path }}.
+  template:
+    src: multipath.conf.j2
+    dest: "{{ multipath_config_path }}"
+  vars:
+    config: "{{ combined }}"
+  notify:
+    - restart multipathd
+
+- name: Generate drop-in directory and files.
+  block:
+    - name: Create a multipath drop-in directory.
+      file:
+        path: "{{ multipath_dropin_path }}"
+        state: directory
+        mode: '0655'
+
+    - name: Add dropin files to {{ multipath_dropin_path }}.
+      template:
+        src: multipath.conf.j2
+        dest: "{{ multipath_dropin_path }}/{{ item.key }}.conf"
+      loop: "{{ dropin_files | dict2items }}"
+      vars:
+        config: "{{ item.value }}"
+
+  when: dropin_files | bool
+  notify:
+    - restart multipathd
+
+- name: Start and enable multipathd.
+  service:
+    name: "{{ multipath_service }}"
+    state: "{{ multipath_state }}"
+    enabled: "{{ multipath_enabled }}"

@@ -1,0 +1,6 @@
+---
+- name: Ensure dm-multipath is installed on RHEL.
+  package:
+    name: "{{ multipath_packages }}"
+    state: "{{ multipath_packages_state }}"
+    enablerepo: "{{ multipath_enablerepo | default(omit, true) }}"

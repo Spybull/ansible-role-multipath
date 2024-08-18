@@ -1,0 +1,5 @@
+---
+- name: restart multipathd
+  service:
+    name: "{{ multipath_service }}"
+    state: "{{ multipath_restart_state }}"
