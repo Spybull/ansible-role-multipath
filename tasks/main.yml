@@ -9,10 +9,17 @@
 
 - include_tasks: "setup-{{ ansible_os_family }}.yml"
 
-- name: Combine defaults for multipath.conf and select dropins.
+- name: Combine defaults for multipath.conf.
   set_fact:
     combined: "{{ multipath_config | combine(multipath_files.multipath | default({}), recursive=True) }}"
-    dropin_files: "{{ multipath_files | default({}) | dict2items | selectattr('key', 'ne', 'multipath') | items2dict }}"
+
+- name: Filter dropin files.
+  set_fact:
+    filtered_files: "{{ multipath_files | default({}) | dict2items | selectattr('key', 'ne', 'multipath') | list }}"
+
+- name: Set dropin files.
+  set_fact:
+    dropin_files: "{{ filtered_files | items2dict }}"
 
 - name: Generate {{ multipath_config_path }}.
   template:
@@ -20,8 +27,7 @@
     dest: "{{ multipath_config_path }}"
   vars:
     config: "{{ combined }}"
-  notify:
-    - restart multipathd
+  notify: restart multipathd
 
 - name: Generate drop-in directory and files.
   block:
@@ -38,10 +44,8 @@
       loop: "{{ dropin_files | dict2items }}"
       vars:
         config: "{{ item.value }}"
-
-  when: dropin_files | bool
-  notify:
-    - restart multipathd
+      notify: restart multipathd
+  when: dropin_files | length > 0
 
 - name: Start and enable multipathd.
   service:
